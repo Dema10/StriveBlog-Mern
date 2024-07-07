@@ -25,7 +25,7 @@ export default function Home() {
   return (
     <Row>
       <Col>
-        <h1 className="text-center mt-3">I Post di Strive Blog!</h1>
+        <h1 style={{ color:"#00ff84" }} className="text-center my-4">I Post di Strive Blog!</h1>
         <Row>
           <Post posts={posts} />
         </Row>

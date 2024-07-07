@@ -20,12 +20,12 @@ const blogPostSchema = new mongoose.Schema (
         readTime: {
             value: {
                 type: Number,
-                required: true
+                default: 0
             },
 
             unit: {
                 type: String,
-                required: true
+                default: "minuto"
             }
         },
 

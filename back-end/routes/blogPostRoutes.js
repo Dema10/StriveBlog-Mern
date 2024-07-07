@@ -1,6 +1,25 @@
 import express from 'express';
 import BlogPost from '../models/blogPost.js';
 
+// Creo una funzione per calcolare il tempo di lettura
+function calculateReadTime(content) {
+    if (!content || typeof content !== 'string') {
+        return { value: 0, unit: "minuti" };
+    }
+
+    const wordsPerMinute = 200; // il valore 200 sta ad indicare che in 1 minuto si possono leggere 200 parole perchè da una ricerca in media si possono leggere dalle 200 alle 300 parole al minuto
+    const wordCount = content.trim().split(/\s+/).length; // Conto le parole nel contenuto usando la regex \s+ che divede le parole da uno o più spazi bianchi
+    const readTimeValue = Math.ceil(wordCount / wordsPerMinute) // Arrotondo per eccesso
+
+    // con un operatore ternario controllo che se il valore di readTimeValue è strettamente uguale a 1 o no gestisco il singolare e plurale di unit
+    const unit = readTimeValue === 1 ? "minuto" : "minuti";
+
+    return {
+        value: readTimeValue, 
+        unit: unit
+    };
+}
+
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -42,6 +61,11 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
+    const postData = req.body;
+    // Calcolo automaticamente il tempo di lettura prima di salvare il post
+    const { value, unit } = calculateReadTime(postData.content);
+    postData.readTime = { value, unit };
+
     const post = new BlogPost(req.body);
 
     try {
@@ -54,6 +78,11 @@ router.post('/', async (req, res) => {
 
 router.patch('/:id', async (req, res) => {
     try {
+        const postData = req.body;
+        // Se il contenuto viene aggiornato, ricalcolo il tempo di lettura
+        if (postData.content) {
+            postData.readTime = calculateReadTime(postData.content);
+        }
         const updatePost = await BlogPost.findByIdAndUpdate(
             req.params.id,
             req.body,
