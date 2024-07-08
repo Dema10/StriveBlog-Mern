@@ -1,5 +1,6 @@
 import express from 'express';
 import BlogPost from '../models/blogPost.js';
+import cloudinaryUploader from '../config/cloudinaryConfig.js';
 
 // Creo una funzione per calcolare il tempo di lettura
 function calculateReadTime(content) {
@@ -60,7 +61,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+/* router.post('/', async (req, res) => {
     const postData = req.body;
     // Calcolo automaticamente il tempo di lettura prima di salvare il post
     const { value, unit } = calculateReadTime(postData.content);
@@ -74,7 +75,30 @@ router.post('/', async (req, res) => {
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
-});
+}); */
+
+// POST CON CLOUDINARY
+router.post('/', cloudinaryUploader.single("cover"), async (req, res) => {
+    try {
+      const postData = req.body;
+      
+      // Aggiunta della cover se presente
+      if (req.file) {
+        postData.cover = req.file.path;
+      }
+      
+      // Calcolo automatico del tempo di lettura
+      const { value, unit } = calculateReadTime(postData.content);
+      postData.readTime = { value, unit };
+      
+      const newPost = new BlogPost(postData);
+      await newPost.save();
+      res.status(201).json(newPost);
+    } catch (err) {
+      console.error(err);
+      res.status(400).json({ message: err.message });
+    }
+  });
 
 router.patch('/:id', async (req, res) => {
     try {

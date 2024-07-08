@@ -4,13 +4,15 @@ import { Button, Form } from "react-bootstrap";
 import { createPost } from '../services/api';
 
 export default function FormGroup() {
+
     const [post, setPost] = useState({
         title: "",
         category: "",
         content: "",
-        // readTime: {value: 0, unit: "minuto"},
         author: ""
       });
+
+      const [coverFile, setCoverFile] = useState(null);
     
       const navigate = useNavigate();
     
@@ -18,16 +20,31 @@ export default function FormGroup() {
         const {name, value} = e.target;
         setPost({ ...post, [name]: value });
       };
+
+      const handleFileChange = (e) => {
+        setCoverFile(e.target.file);
+      };
     
       const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-          await createPost(post);
-          navigate('/');
+            const formData = new FormData();
+            Object.keys(post).forEach(key => {
+                formData.append(key, post[key]);
+            });
+
+            if (coverFile) {
+                formData.append('cover', coverFile);
+            }
+
+            await createPost(formData);
+
+            navigate('/');
         } catch (err) {
-          console.error(" Errore nella creazione del post", err);
+            console.error(" Errore nella creazione del post", err);
         }
-      }
+      };
+
   return (
     <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
@@ -63,13 +80,12 @@ export default function FormGroup() {
                 data-custom-input
             />
         </Form.Group>
-        <Form.Group className="mb-3">
-            <Form.Label>URL Immagine</Form.Label>
+        <Form.Group controlId="formFile" className="mb-3">
+            <Form.Label>Immagine di copertina</Form.Label>
             <Form.Control
-                type="text"
+                type="file"
                 name="cover"
-                value={post.cover}
-                onChange={handleChange}
+                onChange={handleFileChange}
                 required
                 data-custom-input
             />
@@ -85,7 +101,7 @@ export default function FormGroup() {
                 data-custom-input
             />
         </Form.Group>
-        <Button className='mt-3 w-100' variant='outline-success' type='submit'>
+        <Button className='mt-3 mb-5 w-100' variant='outline-success' type='submit'>
             Crea il post
         </Button>
     </Form>
