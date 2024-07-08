@@ -5,7 +5,7 @@ export default function NewPost() {
 
   return (
     <>
-      <h1 className="my5" style={{ color:"#00ff84" }}>Crea un nuovo post!</h1>
+      <h1 className="my-4" style={{ color:"#00ff84" }}>Crea un nuovo post!</h1>
       <FormGroup />
     </>
   )

@@ -15,16 +15,18 @@ export default function App() {
   return (
     <>
       <BrowserRouter>
-        <NavBar />
-        <Container>
-          <Routes>
-            <Route index element={ <Home /> } />
-            <Route path="/newPost" element={ <NewPost /> } />
-            <Route path="/post/:id" element={ <PostDetail /> } />
-            <Route path="*" element={ <NotFound /> } />
-          </Routes>
-        </Container>
-        <Footer />
+        <div className="d-flex flex-column min-vh-100">
+          <NavBar />
+          <Container>
+            <Routes>
+              <Route index element={ <Home /> } />
+              <Route path="/newPost" element={ <NewPost /> } />
+              <Route path="/post/:id" element={ <PostDetail /> } />
+              <Route path="*" element={ <NotFound /> } />
+            </Routes>
+          </Container>
+          <Footer />
+        </div>
       </BrowserRouter>
     </>
   )

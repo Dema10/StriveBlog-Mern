@@ -38,6 +38,7 @@ export default function FormGroup() {
                 value={post.title}
                 onChange={handleChange}
                 required
+                data-custom-input
             />
         </Form.Group>
         <Form.Group className="mb-3">
@@ -48,6 +49,7 @@ export default function FormGroup() {
                 value={post.category}
                 onChange={handleChange}
                 required
+                data-custom-input
             />
         </Form.Group>
         <Form.Group className="mb-3">
@@ -58,6 +60,7 @@ export default function FormGroup() {
                 value={post.content}
                 onChange={handleChange}
                 required
+                data-custom-input
             />
         </Form.Group>
         <Form.Group className="mb-3">
@@ -68,6 +71,7 @@ export default function FormGroup() {
                 value={post.cover}
                 onChange={handleChange}
                 required
+                data-custom-input
             />
         </Form.Group>
         <Form.Group className="mb-3">
@@ -78,9 +82,10 @@ export default function FormGroup() {
                 value={post.author}
                 onChange={handleChange}
                 required
+                data-custom-input
             />
         </Form.Group>
-        <Button variant='outline-success' type='submit'>
+        <Button className='mt-3 w-100' variant='outline-success' type='submit'>
             Crea il post
         </Button>
     </Form>

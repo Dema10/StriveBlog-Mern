@@ -1,0 +1,14 @@
+.custom-link {
+    color: #000000;
+    transition: color 0.3s ease;
+}
+
+.custom-link:hover {
+    color: #00ff84;
+    text-decoration: none;
+}
+
+.form-control[data-custom-input]:focus {
+    border-color: #00ff84;
+    box-shadow: 0 0 0 0.2rem rgba(0, 255, 132, 0.25);
+  }
