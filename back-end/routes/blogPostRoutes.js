@@ -1,6 +1,8 @@
 import express from 'express';
 import BlogPost from '../models/blogPost.js';
 import cloudinaryUploader from '../config/cloudinaryConfig.js';
+import { sendEmail } from '../services/emailServices.js';
+//import upload from '../middlewares/upload.js';
 
 // Creo una funzione per calcolare il tempo di lettura
 function calculateReadTime(content) {
@@ -30,7 +32,7 @@ router.get('/', async (req, res) => {
             // query.title = req.query.title; se si vuole fare una ricerca sensitive
             query.title = {$regex: req.query.title, $options: 'i'} // i = insensitive
         }
-        const {page = 1, limit = 5} = req.query
+        const {page = 1, limit = 10} = req.query
         const posts = await BlogPost.find()
             .limit(limit)
             .skip((page - 1) * limit)
@@ -81,18 +83,36 @@ router.get('/:id', async (req, res) => {
 router.post('/', cloudinaryUploader.single("cover"), async (req, res) => {
     try {
       const postData = req.body;
+    
       
       // Aggiunta della cover se presente
       if (req.file) {
         postData.cover = req.file.path;
+        //postData.cover = `http://localhost:5001/uploads/${req.file.filename}`;
       }
-      
+    
       // Calcolo automatico del tempo di lettura
       const { value, unit } = calculateReadTime(postData.content);
       postData.readTime = { value, unit };
       
       const newPost = new BlogPost(postData);
       await newPost.save();
+      
+      // CODICE PER USARE MAILGUN
+      const htmlContent = `
+        <h1>Il tuo post è stato pubblicato!</h1>
+        <p>Ciao ${newPost.author},</p>
+        <p>Il tuo post "${newPost.title}" è stato pubblicato con successo!</p>
+        <p>Categoria: ${newPost.category}</p>
+        <p>Grazie per il tuo contributo al blog!</p>
+        `;
+
+        await sendEmail(
+            newPost.author,
+            "Il Post è pubblicato 8==D",
+            htmlContent
+        );
+
       res.status(201).json(newPost);
     } catch (err) {
       console.error(err);

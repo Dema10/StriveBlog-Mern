@@ -9,7 +9,7 @@ export const getPost = (id) => api.get(`/blogPost/${id}`);
 export const createPost = (postData) => api.post('/blogPost', postData, {
     headers: {
         'Content-Type': 'multipart/form-data',
-    }
+    },
 });
 export const updatePost = (id, postData) => api.patch(`/blogPost${id}`, postData);
 export const deletePost = (id) => api.delete(`/blogPost${id}`);

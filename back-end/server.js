@@ -6,6 +6,11 @@ import listEndpoints from 'express-list-endpoints';
 import authorRoutes from './routes/authorRoutes.js';
 import blogPostRoutes from './routes/blogPostRoutes.js';
 import { badRequestHandler, authorizedHandler, notFoundHandler, genericErrorHandler } from './middlewares/errorHandlers.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -14,6 +19,8 @@ const app = express();
 app.use(cors());
 
 app.use(express.json());
+
+//app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 mongoose
     .connect(process.env.MONGO_URI)

@@ -19,10 +19,11 @@ export default function FormGroup() {
       const handleChange = (e) => {
         const {name, value} = e.target;
         setPost({ ...post, [name]: value });
+        
       };
 
       const handleFileChange = (e) => {
-        setCoverFile(e.target.file);
+        setCoverFile(e.target.files[0]);
       };
     
       const handleSubmit = async (e) => {
@@ -38,7 +39,7 @@ export default function FormGroup() {
             }
 
             await createPost(formData);
-
+            
             navigate('/');
         } catch (err) {
             console.error(" Errore nella creazione del post", err);
