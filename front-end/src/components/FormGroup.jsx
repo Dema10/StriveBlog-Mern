@@ -102,7 +102,7 @@ export default function FormGroup() {
                 data-custom-input
             />
         </Form.Group>
-        <Button className='mt-3 mb-5 w-100' variant='outline-success' type='submit'>
+        <Button className='mt-3 mb-5 w-100' variant='outline-success' type='submit' data-custom-btn>
             Crea il post
         </Button>
     </Form>

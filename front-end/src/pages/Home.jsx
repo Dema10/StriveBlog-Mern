@@ -23,7 +23,7 @@ export default function Home() {
   }, []);
 
   return (
-    <Row>
+    <Row className="mb-4">
       <Col>
         <h1 style={{ color:"#00ff84" }} className="text-center my-4">I Post di Strive Blog!</h1>
         <Row>

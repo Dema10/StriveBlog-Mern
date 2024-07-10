@@ -63,6 +63,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// POST SENZA CLOUDINARY E MAILGUN
 /* router.post('/', async (req, res) => {
     const postData = req.body;
     // Calcolo automaticamente il tempo di lettura prima di salvare il post
@@ -79,7 +80,7 @@ router.get('/:id', async (req, res) => {
     }
 }); */
 
-// POST CON CLOUDINARY
+// POST CON CLOUDINARY E MAILGUN
 router.post('/', cloudinaryUploader.single("cover"), async (req, res) => {
     try {
       const postData = req.body;
@@ -98,7 +99,7 @@ router.post('/', cloudinaryUploader.single("cover"), async (req, res) => {
       const newPost = new BlogPost(postData);
       await newPost.save();
       
-      // CODICE PER USARE MAILGUN
+      // INVIO EMAIL DI CONFERMA
       const htmlContent = `
         <h1>Il tuo post è stato pubblicato!</h1>
         <p>Ciao ${newPost.author},</p>
@@ -120,7 +121,8 @@ router.post('/', cloudinaryUploader.single("cover"), async (req, res) => {
     }
   });
 
-router.patch('/:id', async (req, res) => {
+// PATCH SENZA CLOUDINARY E MAILGUN
+/* router.patch('/:id', async (req, res) => {
     try {
         const postData = req.body;
         // Se il contenuto viene aggiornato, ricalcolo il tempo di lettura
@@ -140,6 +142,53 @@ router.patch('/:id', async (req, res) => {
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
+}); */
+
+// PATCH CON CLOUDINARY E MAILGUN
+router.patch('/:id', cloudinaryUploader.single("cover"), async (req, res) => {
+    try {
+        let postData = req.body;
+
+        // Aggiorno il campo cover nel caso viene cambiata
+        if (req.file) {
+            postData.cover = req.file.path;
+        }
+
+        // Ricalcolo tempo di lettura
+        if (postData.content) {
+            const { value, unit } = calculateReadTime(postData.content);
+            postData.readTime = { value, unit };
+        }
+
+        const updatedPost = await BlogPost.findByIdAndUpdate(
+            req.params.id,
+            postData,
+            { new: true }
+        );
+
+        if (!updatedPost) {
+            return res.status(404).json({ message: "Post non trovato" });
+        } else {
+            // Invio un'email di conferma
+            const htmlContent = `
+                <h1>Il tuo post è stato aggiornato!</h1>
+                <p>Ciao ${updatedPost.author},</p>
+                <p>Il tuo post "${updatedPost.title}" è stato aggiornato con successo!</p>
+                <p>Categoria: ${updatedPost.category}</p>
+                <p>Grazie per mantenere aggiornato il tuo contenuto!</p>
+            `;
+
+            await sendEmail(
+                updatedPost.author,
+                "Post Aggiornato con Successo",
+                htmlContent
+            );
+
+            res.json({ message: "Post modificato", post: updatedPost });
+        }
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
 });
 
 router.delete('/:id', async (req, res) => {
@@ -152,6 +201,44 @@ router.delete('/:id', async (req, res) => {
         }
     } catch (err) {
         res.status(500).json({ message: err.message });
+    }
+});
+
+// PATCH per modificare solo la cover /blogPost/:blogPostId/cover
+router.patch('/:blogPostId/cover', cloudinaryUploader.single("cover"), async (req, res) => {
+    try {
+        if(!req.file) {
+            return res.status(404).json({ message: 'Nessun file caricato' })
+        }
+        const blogPost = await BlogPost.findById(req.params.blogPostId);
+        if (!blogPost) {
+            return res.status(404).json({ message: 'Post non trovato' });
+        }
+       
+        blogPost.cover = req.file.path;
+        
+        await blogPost.save();
+
+        // Invio un'email di conferma
+        const htmlContent = `
+        <h1>il tuo post è stato aggiornato!</h1>
+        <p>Ciao ${blogPost.author},</p>
+        <p>La cover del tuo post: "${blogPost.title}" è stato aggiornato con successo!</p>
+        <p>Categoria: ${blogPost.category}</p>
+        <p>Grazie per mantenere aggiornato il tuo contenuto!</p>
+    `;
+
+    await sendEmail(
+        blogPost.author,
+        "Immagine del post aggiornata",
+        htmlContent
+    );
+
+        res.json(blogPost);
+
+    } catch (err) {
+        console.error("Errore durante l'aggiornamento della copertina:", err);
+        res.status(500).json({ message: "Errore interno del server" });
     }
 });
 

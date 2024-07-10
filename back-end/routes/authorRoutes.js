@@ -1,6 +1,8 @@
 import express, { json } from 'express';
 import Author from '../models/author.js';
 import BlogPost from '../models/blogPost.js';
+import cloudinaryUploader from '../config/cloudinaryConfig.js';
+//import { sendEmail } from '../services/emailServices.js';
 
 const router = express.Router();
 
@@ -36,6 +38,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// POST senza cloudinary e mailgun(TODO)
 router.post('/', async (req, res) => {
     const author = new Author(req.body);
 
@@ -47,6 +50,7 @@ router.post('/', async (req, res) => {
     }
 });
 
+// PATCH senza cloudinary e mailgun(TODO)
 router.patch('/:id', async (req, res) => {
     try {
         const updateAuthor = await Author.findByIdAndUpdate(
@@ -91,6 +95,28 @@ router.get('/:id/blogPost', async (req, res) => {
         res.json(blogPost)
     } catch (err) {
         res.status(500).json({ message: err.message });
+    }
+});
+
+// PATCH per modificare solo l' avatar /authors/:authorsId/avatar
+router.patch('/:authorsId/avatar', cloudinaryUploader.single("avatar"), async (req, res) => {
+    try {
+        if(!req.file) {
+            return res.status(404).json({ message: 'Nessun file caricato' })
+        }
+        const author = await Author.findById(req.params.authorsId);
+        if (!author) {
+            return res.status(404).json({ message: 'Autore non trovato' });
+        }
+       
+        author.avatar = req.file.path;
+        
+        await author.save();
+        res.json(author);
+
+    } catch (err) {
+        console.error("Errore durante l'aggiornamento del' avatar:", err);
+        res.status(500).json({ message: "Errore interno del server" });
     }
 });
 

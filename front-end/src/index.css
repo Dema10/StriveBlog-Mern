@@ -11,4 +11,15 @@
 .form-control[data-custom-input]:focus {
     border-color: #00ff84;
     box-shadow: 0 0 0 0.2rem rgba(0, 255, 132, 0.25);
-  }
+}
+
+button[data-custom-btn] {
+    color: #00ff84;
+    border-color: #00ff84;
+}
+
+button[data-custom-btn]:hover {
+    color: white;
+    border-color: #00ff84;
+    background-color: #00ff84;
+}
