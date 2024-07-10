@@ -11,7 +11,11 @@ export const createPost = (postData) => api.post('/blogPost', postData, {
         'Content-Type': 'multipart/form-data',
     },
 });
-export const updatePost = (id, postData) => api.patch(`/blogPost${id}`, postData);
+export const updatePost = (id, postData) => api.patch(`/blogPost${id}`, postData, {
+    headers: {
+        'Content-Type': 'multipart/form-data',
+    },
+});
 export const deletePost = (id) => api.delete(`/blogPost${id}`);
 
 //TODO costanti CRUD di author

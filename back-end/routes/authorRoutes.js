@@ -39,7 +39,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST senza cloudinary e mailgun(TODO)
-router.post('/', async (req, res) => {
+/* router.post('/', async (req, res) => {
     const author = new Author(req.body);
 
     try {
@@ -48,12 +48,30 @@ router.post('/', async (req, res) => {
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
+}); */
+
+// POST con cloudinary e mailgun(TODO)
+router.post('/', cloudinaryUploader.single("avatar"), async (req, res) => {
+    try {
+        const authorData = req.body;
+
+        if (req.file) {
+            authorData.avatar = req.file.path;
+        }
+
+        const author = new Author(authorData);
+        const newAuthor = await author.save();
+        res.status(201).json(newAuthor);
+
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
 });
 
 // PATCH senza cloudinary e mailgun(TODO)
-router.patch('/:id', async (req, res) => {
+/* router.patch('/:id', async (req, res) => {
     try {
-        const updateAuthor = await Author.findByIdAndUpdate(
+        const updateAuthor = await Author.findByIdAndUpdate (
             req.params.id,
             req.body,
             { new: true }
@@ -63,6 +81,31 @@ router.patch('/:id', async (req, res) => {
         } else {
             res.json({ message: "Autore modificato" });
         }
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+}); */
+
+// PATCH con cloudinary e mailgun(TODO)
+router.patch('/:id', cloudinaryUploader.single("avatar"), async (req, res) => {
+    try {
+        const authorData = req.body;
+
+        if (req.file) {
+            authorData.avatar = req.file.path;
+        }
+
+        const updateAuthor = await Author.findByIdAndUpdate (
+            req.params.id,
+            req.authorData,
+            { new: true }
+        );
+        if (!updateAuthor) {
+            return res.status(404).json({ message: "Autore non trovato" })
+        } else {
+            res.json({ message: "Autore modificato" });
+        }
+        
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
