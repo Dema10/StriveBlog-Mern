@@ -4,10 +4,14 @@ import logo from "../assets/logo.png";
 
 export default function NavBar() {
     return (
-        <Navbar expand="lg" className="bg-body-tertiary">
+        <Navbar bg="dark" expand="lg" data-bs-theme="dark">
           <Container>
             <Navbar.Brand as={Link} to="/">
-                <img style={{ width: '140px' }} alt="logo" src={logo} />  
+                <img style={{ 
+                  width: '140px',
+                  filter: 'invert(1) brightness(100)',
+                  mixBlendMode: 'difference' 
+                }} alt="logo" src={logo} />
             </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">

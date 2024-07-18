@@ -1,20 +1,25 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react'
 import { Button, Form } from "react-bootstrap";
-import { createPost } from '../services/api';
 
-export default function FormGroup() {
-
+export default function FormGroup({ initialPost, onSubmit, onSubmitSuccess }) {
+    // Stato per gestire i dati del post
     const [post, setPost] = useState({
         title: "",
         category: "",
         content: "",
-        author: ""
+        author: "",
+        ...initialPost // Spread per includere i dati iniziali se presenti
       });
 
       const [coverFile, setCoverFile] = useState(null);
+
+    // Aggiorna lo stato del post quando initialPost cambia
+    useEffect(() => {
+        if (initialPost) {
+            setPost(initialPost);
+        }
+    }, [initialPost]);
     
-      const navigate = useNavigate();
     
       const handleChange = (e) => {
         const {name, value} = e.target;
@@ -38,18 +43,18 @@ export default function FormGroup() {
                 formData.append('cover', coverFile);
             }
 
-            await createPost(formData);
+            await onSubmit(formData);
             
-            navigate('/');
+            if (onSubmitSuccess) onSubmitSuccess();  // Chiamiamo onSubmitSuccess se definito
         } catch (err) {
             console.error(" Errore nella creazione del post", err);
         }
       };
 
   return (
-    <Form onSubmit={handleSubmit}>
+    <Form data-bs-theme="dark" onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
-            <Form.Label>Titolo post</Form.Label>
+            <Form.Label className='text-white'>Titolo post</Form.Label>
             <Form.Control
                 type="text"
                 name="title"
@@ -60,7 +65,7 @@ export default function FormGroup() {
             />
         </Form.Group>
         <Form.Group className="mb-3">
-            <Form.Label>Categoria</Form.Label>
+            <Form.Label className='text-white'>Categoria</Form.Label>
             <Form.Control
                 type="text"
                 name="category"
@@ -71,7 +76,7 @@ export default function FormGroup() {
             />
         </Form.Group>
         <Form.Group className="mb-3">
-            <Form.Label>Contenuto</Form.Label>
+            <Form.Label className='text-white'>Contenuto</Form.Label>
             <Form.Control as="textarea" rows={3}
                 type="text"
                 name="content"
@@ -82,7 +87,7 @@ export default function FormGroup() {
             />
         </Form.Group>
         <Form.Group controlId="formFile" className="mb-3">
-            <Form.Label>Immagine di copertina</Form.Label>
+            <Form.Label className='text-white'>Immagine di copertina</Form.Label>
             <Form.Control
                 type="file"
                 name="cover"
@@ -92,7 +97,7 @@ export default function FormGroup() {
             />
         </Form.Group>
         <Form.Group className="mb-3">
-            <Form.Label>Email Autore</Form.Label>
+            <Form.Label className='text-white'>Email Autore</Form.Label>
             <Form.Control
                 type="text"
                 name="author"
@@ -102,8 +107,8 @@ export default function FormGroup() {
                 data-custom-input
             />
         </Form.Group>
-        <Button className='mt-3 mb-5 w-100' variant='outline-success' type='submit' data-custom-btn>
-            Crea il post
+        <Button className='mt-3 mb-5 w-100' variant='outline' type='submit' data-custom-btn>
+            {initialPost ? 'Aggiorna il post' : 'Crea il post'}
         </Button>
     </Form>
   )

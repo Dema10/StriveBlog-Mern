@@ -5,6 +5,7 @@ import cors from 'cors';
 import listEndpoints from 'express-list-endpoints';
 import authorRoutes from './routes/authorRoutes.js';
 import blogPostRoutes from './routes/blogPostRoutes.js';
+import authRoutes from './routes/authRoutes.js';
 import { badRequestHandler, authorizedHandler, notFoundHandler, genericErrorHandler } from './middlewares/errorHandlers.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -27,6 +28,7 @@ mongoose
     .then(() => console.log('MONGODB CONNESSO CORRETTAMENTE'))
     .catch((err) => console.error('ERRORE', err))
 
+app.use('/auth', authRoutes)
 app.use('/authors', authorRoutes)
 app.use('/blogPost', blogPostRoutes)
 

@@ -8,6 +8,8 @@ import NewPost from './pages/NewPost';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import PostDetail from './pages/PostDetail';
+import SingUp from './pages/SingUp';
+import Login from './pages/Login';
 
 export default function App() {
  
@@ -19,6 +21,8 @@ export default function App() {
           <NavBar />
           <Container>
             <Routes>
+              <Route path="/singup" element={<SingUp />} />
+              <Route path="/login" element={<Login />} />
               <Route index element={ <Home /> } />
               <Route path="/newPost" element={ <NewPost /> } />
               <Route path="/post/:id" element={ <PostDetail /> } />

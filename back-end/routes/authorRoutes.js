@@ -1,8 +1,7 @@
-import express, { json } from 'express';
+import express from 'express';
 import Author from '../models/author.js';
 import BlogPost from '../models/blogPost.js';
 import cloudinaryUploader from '../config/cloudinaryConfig.js';
-//import { sendEmail } from '../services/emailServices.js';
 
 const router = express.Router();
 
@@ -38,7 +37,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// POST senza cloudinary e mailgun(TODO)
+// POST senza cloudinary
 /* router.post('/', async (req, res) => {
     const author = new Author(req.body);
 
@@ -50,7 +49,7 @@ router.get('/:id', async (req, res) => {
     }
 }); */
 
-// POST con cloudinary e mailgun(TODO)
+// POST con cloudinary
 router.post('/', cloudinaryUploader.single("avatar"), async (req, res) => {
     try {
         const authorData = req.body;
@@ -61,14 +60,19 @@ router.post('/', cloudinaryUploader.single("avatar"), async (req, res) => {
 
         const author = new Author(authorData);
         const newAuthor = await author.save();
-        res.status(201).json(newAuthor);
+
+        //Rimuovo la password per sicurezza
+        const authorRes = newAuthor.toObject();
+        delete authorRes.password;
+
+        res.status(201).json(authorRes);
 
     } catch (err) {
         res.status(400).json({ message: err.message });
     }
 });
 
-// PATCH senza cloudinary e mailgun(TODO)
+// PATCH senza cloudinary
 /* router.patch('/:id', async (req, res) => {
     try {
         const updateAuthor = await Author.findByIdAndUpdate (
@@ -86,12 +90,33 @@ router.post('/', cloudinaryUploader.single("avatar"), async (req, res) => {
     }
 }); */
 
-// PATCH con cloudinary e mailgun(TODO)
+// PATCH con cloudinary
 router.patch('/:id', cloudinaryUploader.single("avatar"), async (req, res) => {
     try {
         const authorData = req.body;
 
+        const oldAuthor = await Author.findById(req.params.id);
+
+        if (!oldAuthor) {
+            return res.status(404).json({ message: "Autore non trovato" });
+        }
+
+        // Qui gestisco l'aggiornamento dell' avatar
         if (req.file) {
+            // Se c'è un nuovo avatar, devo eliminare quello vecchio
+            if (oldAuthor.avatar) {
+                // Estraggo l'ID pubblico del vecchio avatar
+                const publicId = `blog_covers/${oldAuthor.avatar.split('/').pop().split('.')[0]}`;
+                console.log("Extracted publicId:", publicId);
+                try {
+                    // Provo a eliminare il vecchio avatar da Cloudinary
+                    await cloudinary.uploader.destroy(publicId);
+                } catch (cloudinaryError) {
+                    // Se c'è un errore, lo registro ma continuo con l'aggiornamento
+                    console.error("Errore nell'eliminazione del vecchio avatar:", cloudinaryError);
+                }
+            }
+            // Aggiorno il percorso del avatar con la nuova immagine
             authorData.avatar = req.file.path;
         }
 

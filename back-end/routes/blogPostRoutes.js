@@ -2,6 +2,8 @@ import express from 'express';
 import BlogPost from '../models/blogPost.js';
 import cloudinaryUploader from '../config/cloudinaryConfig.js';
 import { sendEmail } from '../services/emailServices.js';
+import { v2 as cloudinary } from "cloudinary";
+import { authMiddleware } from '../middlewares/authMiddleware.js';
 //import upload from '../middlewares/upload.js';
 
 // Creo una funzione per calcolare il tempo di lettura
@@ -24,6 +26,8 @@ function calculateReadTime(content) {
 }
 
 const router = express.Router();
+
+//router.use(authMiddleware);
 
 router.get('/', async (req, res) => {
     try {
@@ -56,6 +60,7 @@ router.get('/:id', async (req, res) => {
         if (!post) {
             return res.status(404).json({ message: 'Post non trovato' });
         } else {
+            // console.log('Post trovato:', post);
             res.json(post);
         }
     } catch (err) {
@@ -148,9 +153,29 @@ router.post('/', cloudinaryUploader.single("cover"), async (req, res) => {
 router.patch('/:id', cloudinaryUploader.single("cover"), async (req, res) => {
     try {
         let postData = req.body;
+        // Recupero il post esistente per confrontarlo con i nuovi dati
+        const oldPost = await BlogPost.findById(req.params.id);
 
-        // Aggiorno il campo cover nel caso viene cambiata
+        if (!oldPost) {
+            return res.status(404).json({ message: "Post non trovato" });
+        }
+
+        // Qui gestisco l'aggiornamento della cover
         if (req.file) {
+            // Se c'è una nuova cover, devo eliminare quella vecchia
+            if (oldPost.cover) {
+                // Estraggo l'ID pubblico della vecchia cover
+                const publicId = `blog_covers/${oldPost.cover.split('/').pop().split('.')[0]}`;
+                console.log("Extracted publicId:", publicId);
+                try {
+                    // Provo a eliminare la vecchia cover da Cloudinary
+                    await cloudinary.uploader.destroy(publicId);
+                } catch (cloudinaryError) {
+                    // Se c'è un errore, lo registro ma continuo con l'aggiornamento
+                    console.error("Errore nell'eliminazione della vecchia cover:", cloudinaryError);
+                }
+            }
+            // Aggiorno il percorso della cover con la nuova immagine
             postData.cover = req.file.path;
         }
 
@@ -191,7 +216,7 @@ router.patch('/:id', cloudinaryUploader.single("cover"), async (req, res) => {
     }
 });
 
-router.delete('/:id', async (req, res) => {
+/* router.delete('/:id', async (req, res) => {
     try {
         const deletePost = await BlogPost.findByIdAndDelete(req.params.id)
         if (!deletePost) {
@@ -201,6 +226,37 @@ router.delete('/:id', async (req, res) => {
         }
     } catch (err) {
         res.status(500).json({ message: err.message });
+    }
+}); */
+
+router.delete("/:id", async (req, res) => {
+    try {
+      // Trova il blog post dal database
+      const blogPost = await BlogPost.findById(req.params.id);
+      if (!blogPost) {
+        // Se il blog post non viene trovato, invia una risposta 404
+        return res.status(404).json({ message: "Blog post non trovato" });
+      }
+  
+      // Estrai l'public_id da Cloudinary dall'URL della cover
+      const publicId = `blog_covers/${blogPost.cover.split('/').pop().split('.')[0]}`;
+      console.log("Extracted publicId:", publicId);
+      // Elimina l'immagine da Cloudinary
+      try {
+        const result = await cloudinary.uploader.destroy(publicId);
+        console.log("Cloudinary deletion result:", result);
+      } catch (cloudinaryError) {
+        console.error("Cloudinary deletion error:", cloudinaryError);
+      }
+  
+      // Elimina il blog post dal database
+      await BlogPost.findByIdAndDelete(req.params.id);
+  
+      // Invia un messaggio di conferma come risposta JSON
+      res.json({ message: "Blog post e immagine di copertina eliminati" });
+    } catch (err) {
+      // In caso di errore, invia una risposta di errore
+      res.status(500).json({ message: err.message });
     }
 });
 
@@ -215,6 +271,21 @@ router.patch('/:blogPostId/cover', cloudinaryUploader.single("cover"), async (re
             return res.status(404).json({ message: 'Post non trovato' });
         }
        
+        // Qui gestisco l'eliminazione della vecchia cover
+        if (blogPost.cover) {
+            // Estraggo l'ID pubblico della vecchia cover
+            const publicId = `blog_covers/${blogPost.cover.split('/').pop().split('.')[0]}`;
+            console.log("Extracted publicId:", publicId);
+            try {
+                // Provo a eliminare la vecchia cover da Cloudinary
+                await cloudinary.uploader.destroy(publicId);
+            } catch (cloudinaryError) {
+                // Se c'è un errore, lo registro ma continuo con l'aggiornamento
+                console.error("Errore nell'eliminazione della vecchia cover:", cloudinaryError);
+            }
+        }
+
+        // Aggiorno il percorso della cover con la nuova immagine
         blogPost.cover = req.file.path;
         
         await blogPost.save();
@@ -239,6 +310,96 @@ router.patch('/:blogPostId/cover', cloudinaryUploader.single("cover"), async (re
     } catch (err) {
         console.error("Errore durante l'aggiornamento della copertina:", err);
         res.status(500).json({ message: "Errore interno del server" });
+    }
+});
+
+
+// GET /blogPost/:id/comments => ritorna tutti i commenti di uno specifico post
+router.get('/:id/comments', async (req, res) => {
+    try {
+        const post = await BlogPost.findById(req.params.id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post non trovato' });
+        }
+        res.json(post.comments);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// GET /blogPost/:id/comments/:commentId => ritorna un commento specifico di un post specifico
+router.get('/:id/comments/:commentId', async (req, res) => {
+    try {
+        const post = await BlogPost.findById(req.params.id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post non trovato' });
+        }
+        const comment = post.comments.id(req.params.commentId);
+        if (!comment) {
+            return res.status(404).json({ message: 'Commento non trovato' }); 
+        }
+        res.json(comment);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// POST /blogPost/:id/comments => aggiungi un nuovo commento ad un post specifico
+router.post('/:id/comments', async (req, res) => {
+    try {
+        const post = await BlogPost.findById(req.params.id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post non trovato' });
+        }
+        const newComment = {
+            name: req.body.name,
+            email: req.body.email,
+            content: req.body.content
+        };
+        post.comments.push(newComment);
+        await post.save();
+        res.status(201).json(newComment);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+// PATCH /blogPost/:id/comment/:commentId => cambia un commento di un post specifico
+router.patch('/:id/comments/:commentId', async (req, res) => {
+    try {
+        const post = await BlogPost.findById(req.params.id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post non trovato' });
+        }
+        const comment = post.comments.id(req.params.commentId);
+        if (!comment) {
+            return res.status(404).json({ message: 'Commento non trovato' }); 
+        }
+        comment.content = req.body.content;
+        await post.save();
+        res.json(comment);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+// DELETE /blogPost/:id/comment/:commentId => elimina un commento specifico da un post specifico
+router.delete('/:id/comments/:commentId', async (req, res) => {
+    try {
+        const post = await BlogPost.findById(req.params.id);
+        if (!post) {
+            return res.status(404).json({ message: 'Post non trovato' });
+        }
+        const comment = post.comments.id(req.params.commentId);
+        if (!comment) {
+            return res.status(404).json({ message: 'Commento non trovato' }); 
+        }
+        //comment.remove();
+        post.comments.pull({ _id: req.params.commentId });
+        await post.save();
+        res.json({ message: "Commento eliminato" });
+    } catch (err) {
+        res.status(500).json({ message: err.message }); 
     }
 });
 

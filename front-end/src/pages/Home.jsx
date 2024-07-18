@@ -12,9 +12,7 @@ export default function Home() {
     const fetchPosts = async () => {
       try {
         const response = await getPosts();
-        setPosts(response.data.posts);
-        console.log(response.data);
-        
+        setPosts(response.data.posts);        
       } catch (err) {
         console.error('Errore nella get di tutti i post', err);
       }

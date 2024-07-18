@@ -1,5 +1,17 @@
 import mongoose from "mongoose";
 
+const commentSchema = new mongoose.Schema (
+    {
+        name: { type: String, required: true },
+        email: { type: String, required: true },
+        content: { type: String, required: true }
+    },
+    {
+        timestamps: true,
+        _id: true
+    }
+);
+
 const blogPostSchema = new mongoose.Schema (
     {
         category: {
@@ -37,7 +49,9 @@ const blogPostSchema = new mongoose.Schema (
         content: {
             type: String,
             required: true
-        }
+        },
+
+        comments: [commentSchema]
     },
 
     {

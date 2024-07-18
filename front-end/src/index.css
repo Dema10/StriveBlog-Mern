@@ -1,5 +1,9 @@
+body {
+    background-color: #070F2B /* #E3FCBF */;
+}
+
 .custom-link {
-    color: #000000;
+    color: #fff;
     transition: color 0.3s ease;
 }
 
@@ -19,7 +23,7 @@ button[data-custom-btn] {
 }
 
 button[data-custom-btn]:hover {
-    color: white;
+    color: black;
     border-color: #00ff84;
     background-color: #00ff84;
 }

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 
 const authorSchema = new mongoose.Schema(
     {
@@ -25,8 +26,11 @@ const authorSchema = new mongoose.Schema(
 
         avatar: {
             type: String,
-            required: true,
-            unique: true,
+        },
+
+        password: {
+            type: String,
+            required: true
         }
     },
 
@@ -35,5 +39,22 @@ const authorSchema = new mongoose.Schema(
         timestamps: true
     }
 );
+
+authorSchema.methods.comparePassword = function (candidatePassword) {
+    return bcrypt.compare(candidatePassword, this.password);
+};
+
+authorSchema.pre("save", async function (next) {
+    if(!this.isModified("password")) return next();
+
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+
+    } catch (err) {
+        next(err)
+    }
+});
 
 export default mongoose.model('author', authorSchema);
