@@ -26,6 +26,8 @@ const authorSchema = new mongoose.Schema(
 
         avatar: {
             type: String,
+            required: true,
+            unique: true
         },
 
         password: {
@@ -52,8 +54,8 @@ authorSchema.pre("save", async function (next) {
         this.password = await bcrypt.hash(this.password, salt);
         next();
 
-    } catch (err) {
-        next(err)
+    } catch (error) {
+        next(error);
     }
 });
 

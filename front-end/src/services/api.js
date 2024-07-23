@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:5001'; // constante della base della nostra api
 const api = axios.create({ baseURL: API_URL }); // creo l'istanza di axios
-/* api.interceptors.request.use(
+api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem("token");
         if (token) {
@@ -14,7 +14,7 @@ const api = axios.create({ baseURL: API_URL }); // creo l'istanza di axios
     (err) => {
         return Promise.reject(err);
     }
-); */
+);
 
 // costanti CRUD di blogPost
 export const getPosts = () => api.get('/blogPost');
@@ -33,7 +33,8 @@ export const deletePost = (id) => api.delete(`/blogPost/${id}`);
 
 // constanti CRUD di blogPost per comments
 // GET su tutti i commenti di un singolo post
-export const getComments = (postId) => api.get(`/blogPost/${postId}/comments`).then(res => res.data);
+export const getComments = (postId) => api.get(`/blogPost/${postId}/comments`)
+  .then(res => res.data.filter(comment => comment && comment.content && comment.content.trim() !== ''));
 // GET sul singolo commento del singolo post
 export const getComment = (postId, commentId) => api.get(`/blogPost/${postId}/comments/${commentId}`);
 // POST di un commento su un singolo post
@@ -61,7 +62,7 @@ export const loginAuthor = async (credentials) => {
         // log per debugging
         console.log('Risposta api login', res.data);
         //  restituisco i dati della risposta
-        return res.data
+        return res.data;
     } catch (err) {
         console.error("Errore nella chiama del login", err);
         throw err;

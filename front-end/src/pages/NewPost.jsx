@@ -1,9 +1,24 @@
 import { useNavigate } from 'react-router-dom';
 import FormGroup from "../components/FormGroup";
-import { createPost } from '../services/api';
+import { createPost, getMe } from '../services/api';
+import { useEffect, useState } from 'react';
 
 export default function NewPost() {
   const navigate = useNavigate();
+  const [initialPost, setInitialPost] = useState({ author: '' });
+
+  useEffect(() => {
+    const fetchAuthorEmail = async () => {
+      try {
+        const authorData = await getMe();
+        setInitialPost(prevPost => ({ ...prevPost, author: authorData.email }));
+      } catch (error) {
+        console.error("Errore nel recupero dei dati utente:", error);
+        navigate("/login");
+      }
+    };
+    fetchAuthorEmail();
+  }, [navigate]);
 
   const handleCreatePost = async (postData) => {
     try {
@@ -16,8 +31,13 @@ export default function NewPost() {
 
   return (
     <>
-      <h1 className="my5" style={{ color:"#00ff84" }}>Crea un nuovo post!</h1>
-      <FormGroup onSubmit={handleCreatePost} onSubmitSuccess={() => navigate('/')} />
+      <h1 className="mt-3 my5" style={{ color:"#00ff84" }}>Crea un nuovo post!</h1>
+      <FormGroup 
+        initialPost={initialPost} 
+        onSubmit={handleCreatePost} 
+        onSubmitSuccess={() => navigate('/')}
+        isNewPost={true} 
+      />
     </>
   );
 }

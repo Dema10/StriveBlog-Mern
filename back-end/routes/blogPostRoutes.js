@@ -27,7 +27,7 @@ function calculateReadTime(content) {
 
 const router = express.Router();
 
-//router.use(authMiddleware);
+router.use(authMiddleware);
 
 router.get('/', async (req, res) => {
     try {
@@ -67,6 +67,7 @@ router.get('/:id', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+
 
 // POST SENZA CLOUDINARY E MAILGUN
 /* router.post('/', async (req, res) => {
@@ -261,55 +262,75 @@ router.delete("/:id", async (req, res) => {
 });
 
 // PATCH per modificare solo la cover /blogPost/:blogPostId/cover
-router.patch('/:blogPostId/cover', cloudinaryUploader.single("cover"), async (req, res) => {
+router.patch('/:id', cloudinaryUploader.single("cover"), async (req, res) => {
     try {
-        if(!req.file) {
-            return res.status(404).json({ message: 'Nessun file caricato' })
+        let postData = req.body;
+        // Recupero il post esistente per confrontarlo con i nuovi dati
+        const oldPost = await BlogPost.findById(req.params.id);
+
+        if (!oldPost) {
+            return res.status(404).json({ message: "Post non trovato" });
         }
-        const blogPost = await BlogPost.findById(req.params.blogPostId);
-        if (!blogPost) {
-            return res.status(404).json({ message: 'Post non trovato' });
-        }
-       
-        // Qui gestisco l'eliminazione della vecchia cover
-        if (blogPost.cover) {
-            // Estraggo l'ID pubblico della vecchia cover
-            const publicId = `blog_covers/${blogPost.cover.split('/').pop().split('.')[0]}`;
-            console.log("Extracted publicId:", publicId);
-            try {
-                // Provo a eliminare la vecchia cover da Cloudinary
-                await cloudinary.uploader.destroy(publicId);
-            } catch (cloudinaryError) {
-                // Se c'è un errore, lo registro ma continuo con l'aggiornamento
-                console.error("Errore nell'eliminazione della vecchia cover:", cloudinaryError);
+
+        // Gestione dell'aggiornamento della cover
+        if (req.file) {
+            // Se c'è una nuova cover, devo eliminare quella vecchia
+            if (oldPost.cover) {
+                // Estraggo l'ID pubblico della vecchia cover
+                const publicId = `blog_covers/${oldPost.cover.split('/').pop().split('.')[0]}`;
+                console.log("Extracted publicId:", publicId);
+                try {
+                    // Provo a eliminare la vecchia cover da Cloudinary
+                    await cloudinary.uploader.destroy(publicId);
+                } catch (cloudinaryError) {
+                    // Se c'è un errore, lo registro ma continuo con l'aggiornamento
+                    console.error("Errore nell'eliminazione della vecchia cover:", cloudinaryError);
+                }
             }
+            // Aggiorno il percorso della cover con la nuova immagine
+            postData.cover = req.file.path;
         }
 
-        // Aggiorno il percorso della cover con la nuova immagine
-        blogPost.cover = req.file.path;
-        
-        await blogPost.save();
+        // Ricalcolo tempo di lettura solo se il contenuto è stato modificato
+        if (postData.content) {
+            const { value, unit } = calculateReadTime(postData.content);
+            postData.readTime = { value, unit };
+        }
 
-        // Invio un'email di conferma
-        const htmlContent = `
-        <h1>il tuo post è stato aggiornato!</h1>
-        <p>Ciao ${blogPost.author},</p>
-        <p>La cover del tuo post: "${blogPost.title}" è stato aggiornato con successo!</p>
-        <p>Categoria: ${blogPost.category}</p>
-        <p>Grazie per mantenere aggiornato il tuo contenuto!</p>
-    `;
+        // Aggiorno il post nel database
+        const updatedPost = await BlogPost.findByIdAndUpdate(
+            req.params.id,
+            postData,
+            { new: true, runValidators: true }
+        );
 
-    await sendEmail(
-        blogPost.author,
-        "Immagine del post aggiornata",
-        htmlContent
-    );
+        if (!updatedPost) {
+            return res.status(404).json({ message: "Post non trovato" });
+        } else {
+            // Invio un'email di conferma
+            const htmlContent = `
+                <h1>Il tuo post è stato aggiornato!</h1>
+                <p>Ciao ${updatedPost.author},</p>
+                <p>Il tuo post "${updatedPost.title}" è stato aggiornato con successo!</p>
+                <p>Categoria: ${updatedPost.category}</p>
+                <p>Grazie per mantenere aggiornato il tuo contenuto!</p>
+            `;
 
-        res.json(blogPost);
+            await sendEmail(
+                updatedPost.author,
+                "Post Aggiornato con Successo",
+                htmlContent
+            );
 
+            // Rispondo con il post aggiornato
+            res.json({ 
+                message: "Post modificato con successo", 
+                post: updatedPost 
+            });
+        }
     } catch (err) {
-        console.error("Errore durante l'aggiornamento della copertina:", err);
-        res.status(500).json({ message: "Errore interno del server" });
+        console.error("Errore durante l'aggiornamento del post:", err);
+        res.status(400).json({ message: err.message });
     }
 });
 
@@ -347,22 +368,24 @@ router.get('/:id/comments/:commentId', async (req, res) => {
 // POST /blogPost/:id/comments => aggiungi un nuovo commento ad un post specifico
 router.post('/:id/comments', async (req, res) => {
     try {
-        const post = await BlogPost.findById(req.params.id);
-        if (!post) {
-            return res.status(404).json({ message: 'Post non trovato' });
-        }
-        const newComment = {
-            name: req.body.name,
-            email: req.body.email,
-            content: req.body.content
-        };
-        post.comments.push(newComment);
-        await post.save();
-        res.status(201).json(newComment);
+      const post = await BlogPost.findById(req.params.id);
+      if (!post) {
+        return res.status(404).json({ message: 'Post non trovato' });
+      }
+  
+      const { content, name, email } = req.body;
+      if (!content || content.trim() === '') {
+        return res.status(400).json({ error: 'Il contenuto del commento non può essere vuoto' });
+      }
+      
+      const newComment = { name, email, content: content.trim() };
+      post.comments.push(newComment);
+      await post.save();
+      res.status(201).json(newComment);
     } catch (err) {
-        res.status(400).json({ message: err.message });
+      res.status(400).json({ message: err.message });
     }
-});
+  });
 
 // PATCH /blogPost/:id/comment/:commentId => cambia un commento di un post specifico
 router.patch('/:id/comments/:commentId', async (req, res) => {

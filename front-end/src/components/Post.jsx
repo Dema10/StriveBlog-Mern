@@ -5,7 +5,7 @@ export default function Post({ posts }) {
   return (
     <>
         {posts.map((post) => (
-            <Col xs={12} sm={6} md={4} lg={4} className="mb-3" key={post._id}>
+            <Col xs={12} sm={6} md={6} lg={4} className="mb-3" key={post._id}>
                 <Nav.Link as={Link} to={`/post/${post._id}`}>
                     <Card style={{ 
                         border: "2px solid #00ff84",

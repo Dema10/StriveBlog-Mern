@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./Spinner.css";
 import { useParams, useNavigate } from "react-router-dom";
 // Aggiungiamo getComments e addComment alle importazioni
-import { getPost, updatePost, deletePost, getComments, createComment, deleteComment } from "../services/api";
+import { getPost, updatePost, deletePost, getComments, createComment, deleteComment, getAuthorData } from "../services/api";
 import { Card, Col, Row, Button, ButtonGroup, Form } from "react-bootstrap";
 import { HandThumbsUp, Chat, Pencil, Trash } from "react-bootstrap-icons";
 import FormGroup from "../components/FormGroup";
@@ -16,10 +16,11 @@ export default function PostDetail() {
   // NUOVO: Stati per gestire i commenti
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState({
-    name: "",
-    email: "",
     content: "",
   });
+
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Stato per verificare se l'utente è loggato
+  const [authorData, setAuthorData] = useState(null);
   
   // Ottengo l'id del post dalla URL
   const { id } = useParams();
@@ -29,20 +30,45 @@ export default function PostDetail() {
 
   // Uso useEffect per caricare i dati del post quando il componente monta o l'id cambia
   useEffect(() => {
-    const fetchPostAndComments = async () => {
+    const fetchPost = async () => {
       try {
         const response = await getPost(id);
         setPost(response.data);
-        
-        // Carico i commenti solo al montaggio
-        const commentsResponse = await getComments(id);
-        setComments(commentsResponse);
 
       } catch (err) {
-        console.error('Errore nella get del singolo post o dei commenti', err);
+        console.error('Errore nella get del singolo post', err);
       }
     };
-    fetchPostAndComments();
+
+    const fetchComments = async () => {
+      try {
+        // Carico i commenti solo al montaggio
+        const commentsResponse = await getComments(id);
+        setComments(commentsResponse.filter(comment => comment && comment.content && comment.content.trim() !== ''));
+      } catch (err) {
+        console.error('Errore nella get dei commenti', err);
+      }
+    }
+
+    const authFetchAuthorData = async () => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        setIsLoggedIn(true);
+        try {
+          const data = await getAuthorData();
+          setAuthorData(data);
+          fetchComments();
+        } catch (err) {
+          console.error('Errore nel recupero dei dati dell\' autore loggato', err);
+          setIsLoggedIn(false);
+        }
+      } else {
+        setIsLoggedIn(false);
+      }
+    };
+
+    fetchPost();
+    authFetchAuthorData();
   }, [id, isEditing]);
 
   // Funzione per gestire l'aggiornamento del post
@@ -52,6 +78,9 @@ export default function PostDetail() {
       console.log('Post aggiornato:', response.data);  // Aggiungi questo log
       setPost(response.data);  // Aggiorno lo stato con i nuovi dati
       setIsEditing(false);  // Torno alla modalità di visualizzazione
+
+      const commentsResponse = await getComments(id);
+      setComments(commentsResponse);
     } catch (err) {
       console.error('Errore nell\'aggiornamento del post', err);
     }
@@ -76,16 +105,30 @@ export default function PostDetail() {
   };
 
   // NUOVO: Gestore per l'invio di un nuovo commento
-  const handleCommentSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const newCommentResponse = await createComment(id, newComment);
+const handleCommentSubmit = async (e) => {
+  e.preventDefault();
+  if (!authorData || !newComment.content.trim()) {
+    console.error("Dati autore mancanti o commento vuoto");
+    return;
+  }
+  try {
+    const commentData = {
+      content: newComment.content.trim(),
+      name: `${authorData.name} ${authorData.surname}`,
+      email: authorData.email
+    };
+    const newCommentResponse = await createComment(id, commentData);
+    
+    if (newCommentResponse && newCommentResponse.content) {
       setComments(prevComments => [...prevComments, newCommentResponse]);
-      setNewComment({ name: "", email: "", content: "" });
-    } catch (error) {
-      console.error("Errore nell'aggiunta del commento:", error);
+      setNewComment({ content: "" });
+    } else {
+      console.error("Risposta del commento non valida:", newCommentResponse);
     }
-  };
+  } catch (error) {
+    console.error("Errore nell'aggiunta del commento:", error);
+  }
+};
 
   // funzione per l'eliminazione del commento
   const handleDeleteComment = async (commentId) => {
@@ -116,7 +159,8 @@ export default function PostDetail() {
             <FormGroup 
               initialPost={post} 
               onSubmit={handleUpdatePost} 
-              onSubmitSuccess={() => setIsEditing(false)} 
+              onSubmitSuccess={() => setIsEditing(false)}
+              isNewPost={false}
             />
             <Button variant="secondary" onClick={() => setIsEditing(false)}>Annulla</Button>
           </>
@@ -150,10 +194,10 @@ export default function PostDetail() {
                 <div className="mt-3">
                   {comments.length > 0 ? (
                     comments.map((comment) => (
-                        <div className="d-flex justify-content-between align-items-center" key={comment._id}>
+                        <div className="d-flex justify-content-between align-items-center mb-3" key={comment._id}>
                           <div>
-                            <h3>{comment.name}</h3>
-                            <p className="text-center">{comment.content}</p>
+                            <p className="m-0">{comment.content}</p>
+                            <small><b>{comment.surname}</b></small>
                           </div>
                           <ButtonGroup>
                           <Button variant="outline-warning"><Pencil className="fs-5"/></Button>
@@ -166,29 +210,7 @@ export default function PostDetail() {
                   )}
                   {/* NUOVO: Form per aggiungere un nuovo commento */}
                   <Form onSubmit={handleCommentSubmit}>
-                    <Form.Group className="mb-2">
-                      <Form.Control
-                        type="text"
-                        name="name"
-                        value={newComment.name}
-                        onChange={handleCommentChange}
-                        placeholder="Il tuo nome"
-                        data-custom-input
-                        required
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-2">
-                      <Form.Control
-                        type="email"
-                        name="email"
-                        value={newComment.email}
-                        onChange={handleCommentChange}
-                        placeholder="La tua email"
-                        data-custom-input
-                        required
-                      />
-                    </Form.Group>
-                    <Form.Group className="mb-2">
+                    <Form.Group className="mb-3">
                       <Form.Control
                         as="textarea"
                         name="content"

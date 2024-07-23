@@ -11,7 +11,8 @@ router.post("/login", async (req, res) =>{
         const { email, password } = req.body;
 
         // cerco l'autore nel db grazie alla mail
-        const author = Author.findOne({ email });
+        const author = await Author.findOne({ email });
+        console.log(author);
         if (!author) {
             return res.status(401).json({ message: "Email non valida" });
         }
@@ -24,6 +25,7 @@ router.post("/login", async (req, res) =>{
 
         // se tutto corretto genero il token
         const token = await generateJWT({ id: author._id });
+        console.log(token);
 
         res.json({ token, message: "Login effetuato con successo" });
     } catch (err) {
@@ -36,7 +38,7 @@ router.post("/login", async (req, res) =>{
 router.get("/me", authMiddleware, (req, res) => {
     const authorData = req.author.toObject();
     // elimino la password sempre per sicurezza
-    delete authorData.password
+    delete authorData.password;
     res.json(authorData);
 });
 

@@ -3,7 +3,7 @@ import Author from "../models/author.js";
 
 export const authMiddleware = async (req, res, next) => {
     try {
-        const token = req.headers.authorization?.replace("Bearer", "");
+        const token = req.headers.authorization?.replace("Bearer ", "");
 
         if(!token) {
             return res.status(401).send("Token mancante");
@@ -21,7 +21,7 @@ export const authMiddleware = async (req, res, next) => {
 
         next();
 
-    } catch (err) {
+    } catch (error) {
         res.status(401).send("Token non valido");
     }
 }

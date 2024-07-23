@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { registerAuthor } from '../services/api';
-import { Form, Button, Container } from 'react-bootstrap';
+import { Form, Button } from 'react-bootstrap';
 
 export default function SingUp() {
 
@@ -17,7 +17,11 @@ export default function SingUp() {
     const navigate = useNavigate();
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: [e.target.value] });
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleFileChange = (e) => {
+      setFormData({ ...formData, avatar: e.target.files[0] });
     };
 
     const handleSubmit = async (e) => {
@@ -33,9 +37,9 @@ export default function SingUp() {
     };
 
   return (
-    <Container className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
+    <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
       <div style={{ width: '100%', maxWidth: '400px' }}>
-        <h1 style={{ color:"#00ff84" }} className="text-center my-4">Sing-Up</h1>
+        <h1 style={{ color:"#00ff84" }} className="text-center my-4">Sign-Up</h1>
         <Form data-bs-theme="dark" onSubmit={handleSubmit}>
           <Form.Group className="mb-3">
             <Form.Label className='text-white'>Nome</Form.Label>
@@ -102,16 +106,16 @@ export default function SingUp() {
               type="file" 
               name="avatar"
               placeholder="Avatar"
-              onChange={handleChange}
+              onChange={handleFileChange}
               required
               data-custom-input 
             />
           </Form.Group>
           <Button className='mt-3 mb-5 w-100' variant='outline' type='submit' data-custom-btn>
-            Sing-up
+            Sign-up
           </Button>
         </Form>
       </div>
-    </Container>
+    </div>
   )
 }

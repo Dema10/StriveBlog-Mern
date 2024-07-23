@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Button, Form } from "react-bootstrap";
 
-export default function FormGroup({ initialPost, onSubmit, onSubmitSuccess }) {
+export default function FormGroup({ initialPost, onSubmit, onSubmitSuccess, isNewPost }) {
     // Stato per gestire i dati del post
     const [post, setPost] = useState({
-        title: "",
-        category: "",
-        content: "",
-        author: "",
-        ...initialPost // Spread per includere i dati iniziali se presenti
+        title: initialPost?.title || "",
+        category: initialPost?.category || "",
+        content: initialPost?.content || "",
+        author: initialPost?.author || "",
       });
 
       const [coverFile, setCoverFile] = useState(null);
@@ -16,40 +15,48 @@ export default function FormGroup({ initialPost, onSubmit, onSubmitSuccess }) {
     // Aggiorna lo stato del post quando initialPost cambia
     useEffect(() => {
         if (initialPost) {
-            setPost(initialPost);
+          setPost(prevPost => ({
+            ...prevPost,
+            title: initialPost.title || "",
+            category: initialPost.category || "",
+            content: initialPost.content || "",
+            author: initialPost.author || "",
+          }));
         }
     }, [initialPost]);
     
     
-      const handleChange = (e) => {
+    const handleChange = (e) => {
         const {name, value} = e.target;
-        setPost({ ...post, [name]: value });
-        
-      };
+        setPost(prevPost => ({
+          ...prevPost,
+          [name]: value
+        }));
+    };
 
-      const handleFileChange = (e) => {
+    const handleFileChange = (e) => {
         setCoverFile(e.target.files[0]);
-      };
+    };
     
-      const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const formData = new FormData();
-            Object.keys(post).forEach(key => {
-                formData.append(key, post[key]);
-            });
+    const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+        const formData = new FormData();
+        Object.keys(post).forEach(key => {
+            formData.append(key, post[key]);
+        });
 
-            if (coverFile) {
-                formData.append('cover', coverFile);
-            }
-
-            await onSubmit(formData);
-            
-            if (onSubmitSuccess) onSubmitSuccess();  // Chiamiamo onSubmitSuccess se definito
-        } catch (err) {
-            console.error(" Errore nella creazione del post", err);
+        if (coverFile) {
+            formData.append('cover', coverFile);
         }
-      };
+
+        await onSubmit(formData);
+        
+        if (onSubmitSuccess) onSubmitSuccess();  // Chiamiamo onSubmitSuccess se definito
+    } catch (err) {
+        console.error(" Errore nella creazione del post", err);
+    }
+    };
 
   return (
     <Form data-bs-theme="dark" onSubmit={handleSubmit}>
@@ -102,13 +109,12 @@ export default function FormGroup({ initialPost, onSubmit, onSubmitSuccess }) {
                 type="text"
                 name="author"
                 value={post.author}
-                onChange={handleChange}
-                required
+                readOnly
                 data-custom-input
             />
         </Form.Group>
         <Button className='mt-3 mb-5 w-100' variant='outline' type='submit' data-custom-btn>
-            {initialPost ? 'Aggiorna il post' : 'Crea il post'}
+            {isNewPost ? 'Crea il post' : 'Modifica il post'}
         </Button>
     </Form>
   )

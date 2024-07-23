@@ -1,16 +1,19 @@
 import mongoose from "mongoose";
 
-const commentSchema = new mongoose.Schema (
+const commentSchema = new mongoose.Schema(
     {
-        name: { type: String, required: true },
-        email: { type: String, required: true },
-        content: { type: String, required: true }
+      name: { type: String, required: true },
+      email: { type: String, required: true },
+      content: { 
+        type: String, 
+        required: true,
+      }
     },
     {
-        timestamps: true,
-        _id: true
+      timestamps: true,
+      _id: true
     }
-);
+  );
 
 const blogPostSchema = new mongoose.Schema (
     {
@@ -43,7 +46,6 @@ const blogPostSchema = new mongoose.Schema (
 
         author: {
             type: String,
-            required: true,  // nel placeholder del frontend chiedere email autore
         },
 
         content: {
