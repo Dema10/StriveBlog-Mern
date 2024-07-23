@@ -71,6 +71,11 @@ export default function PostDetail() {
     authFetchAuthorData();
   }, [id, isEditing]);
 
+  // funzione per far vedere i bottoni modifica ed elimina solo all'autore che li ha creati
+  const isCurrentUserAuthor = (authorEmail) => {
+    return isLoggedIn && authorData && authorData.email === authorEmail;
+  };
+
   // Funzione per gestire l'aggiornamento del post
   const handleUpdatePost = async (updatedPost) => {
     try {
@@ -98,13 +103,13 @@ export default function PostDetail() {
     }
   };
 
-  // NUOVO: Gestore per i cambiamenti nei campi del nuovo commento
+  // Gestore per i cambiamenti nei campi del nuovo commento
   const handleCommentChange = (e) => {
     const { name, value } = e.target;
     setNewComment((prev) => ({ ...prev, [name]: value }));
   };
 
-  // NUOVO: Gestore per l'invio di un nuovo commento
+  // Gestore per l'invio di un nuovo commento
 const handleCommentSubmit = async (e) => {
   e.preventDefault();
   if (!authorData || !newComment.content.trim()) {
@@ -152,7 +157,7 @@ const handleCommentSubmit = async (e) => {
       <h1 style={{ color:"#00ff84" }} className="text-center mt-5">
         {isEditing ? "Modifica il post" : `Sei sul post: ${post.title} di: ${post.author}`}
       </h1>
-      <Col>
+      <Col xs={12} sm={12} md={10} lg={8} className="mx-auto">
         {isEditing ? (
           // Se sono in modalità modifica, mostro il form
           <>
@@ -162,12 +167,12 @@ const handleCommentSubmit = async (e) => {
               onSubmitSuccess={() => setIsEditing(false)}
               isNewPost={false}
             />
-            <Button variant="secondary" onClick={() => setIsEditing(false)}>Annulla</Button>
+            <Button variant="secondary" className="mb-3" onClick={() => setIsEditing(false)}>Annulla</Button>
           </>
         ) : (
           // Altrimenti, mostro i dettagli del post
-          <Card style={{ width: "50rem", border: "2px solid #00ff84" }} 
-            className="bg-dark my-5"
+          <Card /* style={{ width: "50rem", border: "2px solid #00ff84" }}  */
+            className="bg-dark my-5 w-100"
             data-bs-theme="dark"
           >
             <Card.Img variant="top" src={post.cover} alt={post.title} />
@@ -181,35 +186,47 @@ const handleCommentSubmit = async (e) => {
                   : 'Non disponibile'}
               </Card.Text>
               <Card.Text className="text-center">By: {post.author}</Card.Text>
-              <ButtonGroup>
-                <Button variant="outline-warning" onClick={() => setIsEditing(true)}>Modifica</Button>
-                <Button variant="outline-danger" onClick={handleDeletePost}>Elimina</Button>
-              </ButtonGroup>
-              <ButtonGroup className="float-end">
-                <Button variant="outline-primary"><HandThumbsUp className=" pb-1 fs-5"/> Like</Button>
-                <Button variant="outline-primary" onClick={() => setIsClick(!isClick)}><Chat className=" pb-1 fs-5"/> {`${comments.length} comments`}</Button>
-              </ButtonGroup>
-              {/* NUOVO: Sezione commenti che appare solo quando isClick è true */}
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+                <ButtonGroup className="mb-2 mb-md-0">
+                  {isCurrentUserAuthor(post.author) && (
+                    <>
+                      <Button variant="outline-warning" onClick={() => setIsEditing(true)}>Modifica</Button>
+                      <Button variant="outline-danger" onClick={handleDeletePost}>Elimina</Button>
+                    </>
+                  )}
+                </ButtonGroup>
+                <ButtonGroup>
+                  <Button variant="outline-primary"><HandThumbsUp className="pb-1 fs-5"/> Like</Button>
+                  <Button variant="outline-primary" onClick={() => setIsClick(!isClick)}>
+                    <Chat className="pb-1 fs-5"/> {`${comments.length} comments`}
+                  </Button>
+                </ButtonGroup>
+              </div>
+              {/* Sezione commenti che appare solo quando isClick è true */}
               {isClick && (
                 <div className="mt-3">
                   {comments.length > 0 ? (
                     comments.map((comment) => (
-                        <div className="d-flex justify-content-between align-items-center mb-3" key={comment._id}>
-                          <div>
-                            <p className="m-0">{comment.content}</p>
-                            <small><b>{comment.surname}</b></small>
-                          </div>
-                          <ButtonGroup>
-                          <Button variant="outline-warning"><Pencil className="fs-5"/></Button>
-                          <Button variant="outline-danger" onClick={() => handleDeleteComment(comment._id)}><Trash className="fs-5" /></Button>
-                          </ButtonGroup>
+                      <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3" key={comment._id}>
+                        <div className="mb-2 mb-md-0">
+                          <p className="m-0">{comment.content}</p>
+                          <small><b>{comment.surname}</b></small>
                         </div>
+                        {isCurrentUserAuthor(comment.email) && (
+                          <ButtonGroup>
+                            <Button variant="outline-warning"><Pencil className="fs-5"/></Button>
+                            <Button variant="outline-danger" onClick={() => handleDeleteComment(comment._id)}>
+                              <Trash className="fs-5" />
+                            </Button>
+                          </ButtonGroup>
+                        )}
+                    </div>
                     ))
                   ) : (
                     <p>Ancora nessun commento</p>
                   )}
-                  {/* NUOVO: Form per aggiungere un nuovo commento */}
-                  <Form onSubmit={handleCommentSubmit}>
+                  {/* Form per aggiungere un nuovo commento */}
+                  <Form onSubmit={handleCommentSubmit} className="mt-3">
                     <Form.Group className="mb-3">
                       <Form.Control
                         as="textarea"
@@ -219,9 +236,10 @@ const handleCommentSubmit = async (e) => {
                         placeholder="Il tuo commento"
                         data-custom-input
                         required
+                        className="w-100"
                       />
                     </Form.Group>
-                    <Button data-custom-btn variant="outline" className="mb-2" type="submit">Invia commento</Button>
+                    <Button data-custom-btn variant="outline" className="mb-2 w-100" type="submit">Invia commento</Button>
                   </Form>
                 </div>
               )}
