@@ -9,6 +9,8 @@ import authRoutes from './routes/authRoutes.js';
 import { badRequestHandler, authorizedHandler, notFoundHandler, genericErrorHandler } from './middlewares/errorHandlers.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import session from "express-session";
+import passport from "./config/passportConfig.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,6 +22,19 @@ const app = express();
 app.use(cors());
 
 app.use(express.json());
+
+// Configurazione sessione per autenticazione Google
+app.use(
+    session({
+        secret: process.env.SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+    })
+);
+
+// Inizializzazione passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 //app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 

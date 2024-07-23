@@ -210,7 +210,7 @@ const handleCommentSubmit = async (e) => {
                       <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3" key={comment._id}>
                         <div className="mb-2 mb-md-0">
                           <p className="m-0">{comment.content}</p>
-                          <small><b>{comment.surname}</b></small>
+                          <small><b>{comment.name}</b></small>
                         </div>
                         {isCurrentUserAuthor(comment.email) && (
                           <ButtonGroup>

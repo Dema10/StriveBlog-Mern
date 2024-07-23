@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button, Form, Nav } from 'react-bootstrap'
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { loginAuthor } from '../services/api';
 import { Google } from "react-bootstrap-icons";
 
@@ -12,6 +12,7 @@ export default function Login() {
     });
 
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         // Questo effect viene eseguito dopo il rendering del componente
@@ -54,6 +55,10 @@ export default function Login() {
         }
     };
 
+    const handleGoogleLogin = () => {
+        window.location.href = "http://localhost:5001/auth/google";
+    };
+
   return (
     <div className="d-flex align-items-center justify-content-center" style={{ minHeight: '100vh' }}>
         <div style={{ width: '100%', maxWidth: '400px' }}>
@@ -85,8 +90,8 @@ export default function Login() {
                     Login
                 </Button>
                 <p className='text-white d-flex'>If you don't have an account click<Nav.Link as={Link} to="/singup" className="custom-link mx-1">signUp</Nav.Link> or</p>
-                <Button className='mt-3 mb-5 w-100' variant='outline' type='submit' data-custom-btn>
-                    <Google className="pb-1 fs-5"/> Log in with google
+                <Button onClick={handleGoogleLogin} className='mt-3 mb-5 w-100' variant='outline' data-custom-btn>
+                    <Google className="pb-1 fs-5" /> Log in with google
                 </Button>
             </Form>
         </div>

@@ -10,29 +10,29 @@ const authorSchema = new mongoose.Schema(
 
         surname: {
             type: String,
-            required: true,
         },
 
         email: {
             type: String,
-            required: true,
             unique: true,
         },
 
         date_of_birth: {
             type: String,
-            required: true,
         },
 
         avatar: {
             type: String,
-            required: true,
-            unique: true
+            unique: true,
+            default: "https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg"
         },
 
         password: {
             type: String,
-            required: true
+        },
+
+        googleId: {
+            type: String
         }
     },
 
