@@ -4,6 +4,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { loginAuthor } from '../services/api';
 import { Google } from "react-bootstrap-icons";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+
 export default function Login() {
 
     const [formData, setFormData] = useState({
@@ -56,7 +58,7 @@ export default function Login() {
     };
 
     const handleGoogleLogin = () => {
-        window.location.href = "http://localhost:5001/auth/google";
+        window.location.href = `${API_URL}/auth/google`;
     };
 
   return (
