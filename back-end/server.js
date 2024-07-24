@@ -19,7 +19,24 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+const corsOptions = {
+    origin: function (origin, callback) {
+        const whitelist = [
+            'http://localhost:5173',
+        ]
+
+        if (process.env.NODE_ENV === 'development') {
+            callback(null, true)
+        } else if (whitelist.indexOf(origin) !== -1 || !origin) {
+            callback(null, true)
+        } else {
+            callback(new Error('GENERIC CORS ERROR - CORS (SERVER BACKEND)'))
+        }
+    },
+    credentials: true
+}
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 
