@@ -22,7 +22,8 @@ const app = express();
 const corsOptions = {
     origin: function (origin, callback) {
         const whitelist = [
-            'http://localhost:5173',
+            'http://localhost:5173', // LOCALE
+            'https://striveblog-mern.onrender.com', // VERCEL
         ]
 
         if (process.env.NODE_ENV === 'development') {
