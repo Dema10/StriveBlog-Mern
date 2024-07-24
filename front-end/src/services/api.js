@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5001'; // constante della base della nostra api
+//const API_URL = 'http://localhost:5001'; // constante della base della nostra api
+const API_URL = 'https://striveblog-mern.onrender.com' || 'http://localhost:5001';
 const api = axios.create({ baseURL: API_URL }); // creo l'istanza di axios
 api.interceptors.request.use(
     (config) => {
