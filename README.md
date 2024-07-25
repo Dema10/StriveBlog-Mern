@@ -1,1 +1,5 @@
-Ciao Simo puoi fare tutto dal creare modificare ed eliminare il post e creare ed eliminare il commento la modifca purtroppo non sono riuscito ad implementarla come i like e nel dropdown Author Detail pagina per vedere i post dell'utente e Profile pagina per modificare i dati utente e/o eliminare l'utente non sono funzionanti
+Ciao Simo puoi fare tutto dal creare modificare ed eliminare il post e creare ed eliminare il commento la modifca purtroppo non sono riuscito ad implementarla come i like e nel dropdown Author Detail pagina per vedere i post dell'utente e Profile pagina per modificare i dati utente e/o eliminare l'utente non sono funzionanti,
+
+La funziona che calcola in automatico il tempo di lettura l'ho impostata a 10 parole al minuto cosi la puoi testare senza scrivere troppo XD, comunque in cima al file blogPostRoutes e tutto commentato e spiegato.
+
+non sono riuscito a fixxare un bug di estetica quando ci troviamo in mobile, quando apri l'hamburger menu il dropdown e le tre linee dell'hamburger vanno sotto a sinistra, sicuramente è il div che ho creato tra il toggle e il dropdown però l'ho messo perchè senza quando il menu è chiuso avevo troppa distanza tra le linee e il dropdown

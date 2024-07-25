@@ -12,7 +12,8 @@ function calculateReadTime(content) {
         return { value: 0, unit: "minuti" };
     }
 
-    const wordsPerMinute = 200; // il valore 200 sta ad indicare che in 1 minuto si possono leggere 200 parole perchè da una ricerca in media si possono leggere dalle 200 alle 300 parole al minuto
+    // messo a 10 cosi puoi provarlo senza scrivere troppo
+    const wordsPerMinute = 10; // il valore 200 sta ad indicare che in 1 minuto si possono leggere 200 parole perchè da una ricerca in media si possono leggere dalle 200 alle 300 parole al minuto
     const wordCount = content.trim().split(/\s+/).length; // Conto le parole nel contenuto usando la regex \s+ che divede le parole da uno o più spazi bianchi
     const readTimeValue = Math.ceil(wordCount / wordsPerMinute) // Arrotondo per eccesso
 
