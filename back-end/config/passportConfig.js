@@ -4,40 +4,44 @@ import Author from "../models/author.js";
 
 
 passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: `${process.env.BACKEND_URL}/auth/google/callback`,
-    },
-    async (accessToken, refreshToken, profile, done) => {
-      try {
-        // Cerchiamo l'autore basandoci sull'email invece che sull'ID Google
-        let author = await Author.findOne({ email: profile.emails[0].value });
-
-        if (!author) {
+    new GoogleStrategy(
+      {
+        // Usiamo le variabili d'ambiente per le credenziali OAuth
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        // L'URL a cui Google reindizzerà dopo l'autenticazione
+        callbackURL: `${process.env.BACKEND_URL}/auth/google/callback`,
+      },
+      // Questa funzione viene chiamata quando l'autenticazione Google ha successo
+      async (accessToken, refreshToken, profile, done) => {
+        try {
+          // Cerchiamo se esiste già un autore con questo ID Google
+          let author = await Author.findOne({ googleId: profile.id });
+  
           // Se l'autore non esiste, ne creiamo uno nuovo
-          author = new Author({
-            googleId: profile.id,
-            name: profile.name.givenName,
-            surname: profile.name.familyName,
-            email: profile.emails[0].value,
-            dataDiNascita: null,
-          });
-          await author.save();
-        } else if (!author.googleId) {
-          // Se l'autore esiste ma non ha un googleId, lo aggiorniamo
-          author.googleId = profile.id;
-          await author.save();
+          if (!author) {
+            author = new Author({
+              googleId: profile.id, // ID univoco fornito da Google
+              name: profile.name.givenName, // Nome dell'utente
+              surname: profile.name.familyName, // Cognome dell'utente
+              email: profile.emails[0].value, // Email principale dell'utente
+              // Nota: la data di nascita non è fornita da Google, quindi la impostiamo a null
+              dataDiNascita: null,
+            });
+            // Salviamo il nuovo autore nel database
+            await author.save();
+          }
+  
+          // Passiamo l'autore al middleware di Passport
+          // Il primo argomento null indica che non ci sono errori
+          done(null, author);
+        } catch (error) {
+          // Se si verifica un errore, lo passiamo a Passport
+          done(error, null);
         }
-
-        done(null, author);
-      } catch (error) {
-        done(error, null);
       }
-    }
-  )
-);
+    )
+  );
   
   // Serializzazione dell'utente per la sessione
   // Questa funzione determina quali dati dell'utente devono essere memorizzati nella sessione
