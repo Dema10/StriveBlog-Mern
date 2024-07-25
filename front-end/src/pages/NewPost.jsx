@@ -26,6 +26,7 @@ export default function NewPost() {
       navigate('/');  // Naviga alla home dopo la creazione
     } catch (err) {
       console.error("Errore nella creazione del post", err);
+      navigate('/');
     }
   };
 
