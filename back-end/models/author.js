@@ -10,11 +10,13 @@ const authorSchema = new mongoose.Schema(
 
         surname: {
             type: String,
+            required: true,
         },
 
         email: {
             type: String,
             unique: true,
+            required: true
         },
 
         date_of_birth: {
