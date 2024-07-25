@@ -21,7 +21,7 @@ export default function App() {
           <NavBar />
           <Container>
             <Routes>
-              <Route path="/singup" element={<SingUp />} />
+              <Route path="/signup" element={<SingUp />} />
               <Route path="/login" element={<Login />} />
               <Route index element={ <Home /> } />
               <Route path="/newPost" element={ <NewPost /> } />
