@@ -91,7 +91,7 @@ export default function Login() {
                 <Button className='mt-3 mb-5 w-100' variant='outline' type='submit' data-custom-btn>
                     Login
                 </Button>
-                <p className='text-white d-flex'>If you don't have an account click<Nav.Link as={Link} to="/singup" className="custom-link mx-1">signUp</Nav.Link> or</p>
+                <p className='text-white d-flex'>If you don't have an account click<Nav.Link as={Link} to="/signup" className="custom-link mx-1">signUp</Nav.Link> or</p>
                 <Button onClick={handleGoogleLogin} className='mt-3 mb-5 w-100' variant='outline' data-custom-btn>
                     <Google className="pb-1 fs-5" /> Log in with google
                 </Button>
