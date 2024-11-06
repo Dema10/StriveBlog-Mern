@@ -231,7 +231,7 @@ router.patch('/:id', cloudinaryUploader.single("cover"), async (req, res) => {
     }
 }); */
 
-router.delete("/:id", cloudinaryUploader.single("avatar"), async (req, res) => {
+router.delete("/:id", cloudinaryUploader.single("cover"), async (req, res) => {
     try {
       // Trova il blog post dal database
       const blogPost = await BlogPost.findById(req.params.id);
